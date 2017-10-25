@@ -1,0 +1,10 @@
+[Appium] Welcome to Appium v1.7.1 (REV eac9068165cc14e1d50bf11c9e6e4ee751684852)
+[HTTP] Could not start REST http interface listener. The requested port may already be in use. Please make sure there is no other instance of this server running already.
+Error: listen EADDRINUSE 0.0.0.0:4723
+    at Object._errnoException (util.js:1026:11)
+    at _exceptionWithHostPort (util.js:1049:20)
+    at Server.setupListenHandle [as _listen2] (net.js:1343:14)
+    at listenInCluster (net.js:1391:12)
+    at doListen (net.js:1500:7)
+    at _combinedTickCallback (internal/process/next_tick.js:141:11)
+    at process._tickCallback (internal/process/next_tick.js:180:9)

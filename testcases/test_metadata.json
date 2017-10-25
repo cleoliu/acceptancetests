@@ -1,0 +1,1 @@
+{"tested_devices": [{"test_dir": "./testcases/", "platform": "web", "device_id": "chrome", "target": "dev", "url": "http://dev.picowork.com"}]}
