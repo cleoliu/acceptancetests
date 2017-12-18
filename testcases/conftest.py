@@ -1,13 +1,14 @@
 import os
+import errno
 import pytest
 import time
+import shutil
 from helper import helper
 from selenium.webdriver.chrome.options import Options
 from selenium import webdriver as selenium_driver
 from appium import webdriver as appium_driver
 from page.Page import AndroidPage, iOSPage, WebPage
-import OS
-import shutil
+from page.Resource import Resource
 
 
 class MyDriver(object):
@@ -37,13 +38,13 @@ class MyWebDriver(MyDriver):
     def __init__(self, url, target):
         self.url = url
         chrome_options = Options()
-        chrome_options.add_argument('--windows-size=1600,900')
+        chrome_options.add_argument('--window-size=1400,800')
         desired_capabilities = selenium_driver.DesiredCapabilities.CHROME
         driver = selenium_driver.Chrome(
             '/usr/local/bin/chromedriver',
             chrome_options=chrome_options,
             desired_capabilities=desired_capabilities)
-        driver.implicitly_wait(30)
+        driver.implicitly_wait(40)
         super(MyWebDriver, self).__init__('web', driver, target, desired_capabilities)
 
         time.sleep(3)
@@ -52,7 +53,6 @@ class MyWebDriver(MyDriver):
     def start(self):
         self.driver.start_session(selenium_driver.DesiredCapabilities.CHROME)
         self.driver.get(self.url)
-        time.sleep(10)
 
     def close(self):
         self.driver.close()
@@ -64,6 +64,7 @@ class MyiOSDriver(MyDriver):
     }
 
     def __init__(self, package_name, package_path, device_id, target, port=4723):
+        self.device_id = device_id
         self.package_path = os.path.abspath(package_path)
         package_name = self.package_name_mapper.get(package_name, package_name)
 
@@ -77,8 +78,8 @@ class MyiOSDriver(MyDriver):
 
         driver = appium_driver.Remote(
             'http://localhost:%d/wd/hub' % port, desired_capabilities)
-        driver.implicitly_wait(30)
-        super(MyiOSDriver, self).__init__('iOS', driver, target, desired_capabilities)
+        driver.implicitly_wait(40)
+        super(MyiOSDriver, self).__init__('ios', driver, target, desired_capabilities)
 
     def start(self):
         self.capabilities['app'] = self.package_path
@@ -100,7 +101,6 @@ class MyAndroidDriver(MyDriver):
         except Exception as e:
             print 'Failed to uninstall app %s' % package_name
             print e
-
         device.install_app(package_path)
 
         desired_capabilities = {
@@ -112,8 +112,8 @@ class MyAndroidDriver(MyDriver):
         }
         driver = appium_driver.Remote(
             'http://localhost:%d/wd/hub' % port, desired_capabilities)
-        driver.implicitly_wait(30)
-        super(MyAndroidDriver, self).__init__('Android', driver, target, desired_capabilities)
+        driver.implicitly_wait(5)
+        super(MyAndroidDriver, self).__init__('android', driver, target, desired_capabilities)
 
     def start(self):
         self.driver.start_session(self.capabilities)
@@ -123,7 +123,7 @@ class MyAndroidDriver(MyDriver):
 
 
 def pytest_addoption(parser):
-    parser.addoption('--platform', action='store',
+    parser.addoption('--platform', action='store', type=str.lower,
                      default='', help='platform: Android/iOS/web')
     parser.addoption('--device_id', action='store',
                      default='', help='device id')
@@ -140,10 +140,26 @@ def pytest_configure(config):
     if config.option.platform != 'Android':
         setattr(config.option, 'markexpr', 'not Android')
 
+def pytest_runtest_makereport(item, call):
+    if 'incremental' in item.keywords:
+        if call.excinfo:
+            parent = item.parent
+            parent._previousfailed = item
+
+def pytest_runtest_setup(item):
+    skip = item.get_marker('skip_by_platform')
+    if skip:
+        for info in skip:
+            if item.config.option.platform in info.args[0]:
+                pytest.skip('skip platform: {}'.format(info.args[0]))
+
+    previous = getattr(item.parent, "_previousfailed", None)
+    if previous:
+        pytest.xfail('previous test failed (%s)' % previous.name)
 
 @pytest.fixture(scope='session', autouse=True)
 def driver_setup(request):
-    platform = request.config.option.platform.lower()
+    platform = request.config.option.platform
     driver = None
     platform_page = None
 
@@ -166,8 +182,8 @@ def driver_setup(request):
     else:
         raise RuntimeError('Unrecognized platform: %s' % platform)
 
-    try:
-        yield driver, platform_page
-    finally:
-        # delete screenshot folder
-        shutil.rmtree(os.getcwd()+'/res/test_cowork_'+platfrom)
+    shutil.rmtree(Resource.PLATFORM_TEMP_ROOT + platform, ignore_errors=True)
+
+    os.makedirs(Resource.PLATFORM_TEMP_ROOT + platform)
+    yield driver, platform_page
+

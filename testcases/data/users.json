@@ -1,7 +1,12 @@
 {
-    "users":
+    "users": [
         {
             "email": "picotest_bot1@picowork.com",
             "password": "picowork"
+        },
+        {
+            "email": "picotest_bot2@picowork.com",
+            "password": "picowork"
         }
+    ]
 }

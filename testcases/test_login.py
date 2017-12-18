@@ -15,13 +15,10 @@ def setup_login_class(request, driver_setup):
 class TestLogin(object):
 
     def test_login_failure(self):
-        time.sleep(1)
         login_page = self.app.get_login_page()
         login_page.set_username('qary@mailinator.com')
         login_page.set_password('picowork')
-        time.sleep(1)
-        login_page.login()
-        time.sleep(4)
+        login_page.click_login()
         assert login_page.is_failure(), 'login seems success'
         login_page.accept_login_error_alert()
 
@@ -29,7 +26,6 @@ class TestLogin(object):
         login_page = self.app.get_login_page()
         login_page.set_username(self.user.email)
         login_page.set_password(self.user.password)
-        login_page.login()
-        time.sleep(8)
+        login_page.click_login()
         recent_page = self.app.get_recent_page()
         assert recent_page.is_ready(), 'Failed to go to recent page'

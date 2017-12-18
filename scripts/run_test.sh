@@ -16,7 +16,7 @@ then
     # ios-sim start --devicetypeid "iPhone-7, 11.0" --exit
     ./scripts/get_ftp_file.sh iOS $target release
     unzip ./PicoworkPortal.app.zip > /dev/null
-    ./generate_tested_devices.py iOS -n com.picowork.$target -p ./PicoworkPortal.app -d 665B0AEA-824B-4875-98AE-5CCF7B5EEE8C -t $target
+    ./generate_tested_devices.py iOS -n com.picowork.$target -p ./PicoworkPortal.app -d EFFFD0F8-6907-41DF-B3A0-B0D9DC08A5D2 -t $target
 fi
 
 if [ "$test_android" == "true" ]
@@ -35,4 +35,4 @@ sleep 10 # wait emulator start completely
 
 ./testcases/test_runner.py
 echo "Test done ret code is $?"
-#merge_result.py ./*.xml > test_result.xml
+merge_result.py ./*.xml > test_result.xml

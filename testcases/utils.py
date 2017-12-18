@@ -9,7 +9,7 @@ User = namedtuple('user', ['email', 'password'])
 
 def load_default_user():
     with open('./testcases/data/users.json') as f:
-        user = json.load(f)['users']
+        user = json.load(f)['users'][0]
         return User(user['email'], user['password'])
 
 def close_app(my_driver):
@@ -21,10 +21,10 @@ def close_app(my_driver):
 @contextmanager
 def app_context(my_driver, platformPage):
     time.sleep(1)
-    app = App(driver=my_driver.get_driver(), platformPage=platformPage)
+    app = App(driver=my_driver.get_driver(), platformPage=platformPage, platform=my_driver.platform)
     my_driver.start()
     time.sleep(10)
-    app.get_login_page().allow_notification()
+    app.get_login_page().allow_permission()
     try:
         yield app
     finally:
