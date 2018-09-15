@@ -1,4 +1,6 @@
-
+# Requirements
+- macOS
+- Python 2.7
 # Main Install 
 - **Visual Studio Code**
 ```https://code.visualstudio.com/```
